@@ -9,118 +9,134 @@ class SideMenu
     /**
      * List of side menu items.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public static function menu()
     {
-        $menu = array();
+        $menu = [];
         $user = Auth::user();
-        $position = $user ? $user->position : null;
+        $role_id = $user ? $user->role_id : null;
 
-        if ($position == 1 || $position == 3) {
-            $menu = [
-                'dashboard' => [
-                    'icon' => 'home',
-                    'route_name' => 'dashboard',
-                    'params' => ['layout' => 'side-menu'],
-                    'title' => 'หน้าหลัก'
-                ],
-                'task_manager_list' => [
-                    'icon' => 'edit',
-                    'title' => 'จัดการใบงาน',
-                    'sub_menu' => [
-                        'task_manager_list' => [
-                            'icon' => '',
-                            'route_name' => 'task_manager_list',
-                            'params' => ['layout' => 'side-menu'],
-                            'title' => 'ใบงานทั้งหมด'
-                        ],
-                        'task_manager_form' => [
-                            'icon' => '',
-                            'route_name' => 'task_manager_form',
-                            'params' => ['layout' => 'side-menu'],
-                            'title' => 'ใบงานใหม่'
-                        ]
-                    ]
-                ],
-                'calendar' => [
-                    'icon' => 'calendar',
-                    'route_name' => 'calendar',
-                    'params' => ['layout' => 'side-menu'],
-                    'title' => 'ปฏิทินนัดหมาย'
-                ],
-                'crud' => [
-                    'icon' => 'calendar',
-                    'route_name' => 'book_list',
-                    'params' => ['layout' => 'side-menu'],
-                    'title' => 'นัดหมายทั้งหมด'
-                ],
-            ];
+        // ถ้าไม่มี role_id (ยังไม่ได้ login) ให้ return array ว่าง
+        if (!$role_id) {
+            return $menu;
         }
 
-        if ($position == 2) {
-            $menu['workplace_list'] = [
-                'icon' => 'clipboard',
-                'route_name' => 'workplace_list',
-                'params' => ['layout' => 'side-menu'],
-                'title' => 'ลิสท์งานช่าง'
-            ];
-            $menu['calendar'] = [
-                'icon' => 'calendar',
-                'route_name' => 'calendar',
-                'params' => ['layout' => 'side-menu'],
-                'title' => 'ปฏิทินนัดหมาย'
-            ];
-        }
+        // ========== เมนูพื้นฐานสำหรับทุกคนที่ Login ==========
+        $menu['dashboard'] = [
+            'icon' => 'home',
+            'route_name' => 'dashboard',
+            'params' => ['layout' => 'side-menu'],
+            'title' => 'หน้าหลัก'
+        ];
 
-        if ($position == 1) {
-            $menu['users'] = [
-                'icon' => 'codesandbox',
-                'title' => 'ข้อมูลหลัก',
+
+        // ========== เมนูสำหรับผู้ดูแลระบบและผู้จัดการโครงการ (Role 1, 2) ==========
+        if (in_array($role_id, [1, 2])) {
+            $menu['devider-1'] = [
+                'devider' => true
+            ];
+            $menu['management'] = [
+                'icon' => 'box',
+                'title' => 'จัดการข้อมูล',
                 'sub_menu' => [
-                    'users-layout-3' => [
+                    'projects' => [
                         'icon' => '',
-                        'route_name' => 'employee_list',
+                        'route_name' => 'projects.index', // ต้องไปสร้าง route ชื่อนี้
                         'params' => ['layout' => 'side-menu'],
-                        'title' => 'จัดการพนักงาน'
+                        'title' => 'จัดการโครงการ'
                     ],
-                    'product_list' => [
+                    'teams' => [
                         'icon' => '',
-                        'route_name' => 'product_list',
+                        'route_name' => 'teams.index', // ต้องไปสร้าง route ชื่อนี้
                         'params' => ['layout' => 'side-menu'],
-                        'title' => 'จัดการสินค้า/บริการ'
+                        'title' => 'จัดการทีมงาน'
+                    ],
+                    'assets' => [
+                        'icon' => '',
+                        'route_name' => 'assets.index', // ต้องไปสร้าง route ชื่อนี้
+                        'params' => ['layout' => 'side-menu'],
+                        'title' => 'จัดการสินทรัพย์'
                     ]
                 ]
             ];
         }
 
-        if ($position == 1 || $position == 3){
-            $menu['report'] = [
+
+        // ========== เมนูสำหรับผู้ดูแลระบบสูงสุดเท่านั้น (Role 1) ==========
+        if ($role_id == 1) {
+            $menu['user_management'] = [
+                'icon' => 'users',
+                'title' => 'จัดการผู้ใช้งาน',
+                'sub_menu' => [
+                    'users' => [
+                        'icon' => '',
+                        'route_name' => 'users.index', // ต้องไปสร้าง route ชื่อนี้
+                        'params' => ['layout' => 'side-menu'],
+                        'title' => 'ผู้ใช้งานทั้งหมด'
+                    ],
+                    'roles' => [
+                        'icon' => '',
+                        'route_name' => 'roles.index', // ต้องไปสร้าง route ชื่อนี้
+                        'params' => ['layout' => 'side-menu'],
+                        'title' => 'ตำแหน่งและสิทธิ์'
+                    ]
+                ]
+            ];
+        }
+
+        // ========== เมนูสำหรับ Staff (Role 4) ==========
+        if ($role_id == 4) {
+             $menu['my_work'] = [
+                'icon' => 'clipboard',
+                'title' => 'งานของฉัน',
+                'sub_menu' => [
+                    'my_projects' => [
+                        'icon' => '',
+                        'route_name' => 'my-projects.index', // ต้องไปสร้าง route ชื่อนี้
+                        'params' => ['layout' => 'side-menu'],
+                        'title' => 'โครงการที่ได้รับมอบหมาย'
+                    ],
+                    'my_timesheets' => [
+                        'icon' => '',
+                        'route_name' => 'my-timesheets.index', // ต้องไปสร้าง route ชื่อนี้
+                        'params' => ['layout' => 'side-menu'],
+                        'title' => 'บันทึกเวลาทำงาน'
+                    ]
+                ]
+            ];
+        }
+
+
+        // ========== เมนูรายงาน (Role 1, 2, 3) ==========
+        if (in_array($role_id, [1, 2, 3])) {
+            $menu['devider-2'] = [
+                'devider' => true
+            ];
+            $menu['reports'] = [
                 'icon' => 'printer',
                 'title' => 'รายงาน',
                 'sub_menu' => [
-                    'report_sale' => [
+                    'timesheet_report' => [
                         'icon' => '',
-                        'route_name' => 'report_sale',
+                        'route_name' => 'reports.timesheet', // ต้องไปสร้าง route ชื่อนี้
                         'params' => ['layout' => 'side-menu'],
-                        'title' => 'รายงานการทำนัดขาย'
-                    ],
-                    'report_technician' => [
-                        'icon' => '',
-                        'route_name' => 'report_technician',
-                        'params' => ['layout' => 'side-menu'],
-                        'title' => 'รายงานการทำงานของช่าง'
-                    ],
-                    'report_product' => [
-                        'icon' => '',
-                        'route_name' => 'report_product',
-                        'params' => ['layout' => 'side-menu'],
-                        'title' => 'รายงานการขายสินค้า'
+                        'title' => 'รายงาน Timesheet'
                     ]
                 ]
             ];
         }
+        
+        // ========== เมนูสำหรับลูกค้า (Role 5) ==========
+        if ($role_id == 5) {
+             $menu['client_report'] = [
+                'icon' => 'file-text',
+                'route_name' => 'reports.client', // ต้องไปสร้าง route ชื่อนี้
+                'params' => ['layout' => 'side-menu'],
+                'title' => 'รายงานความคืบหน้า'
+            ];
+        }
+
 
         return $menu;
     }

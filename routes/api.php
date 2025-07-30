@@ -2,26 +2,40 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\LineController;
-use App\Http\Controllers\LineWebhookController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\AssetController;
+use App\Http\Controllers\Api\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
+| API routes for the Flutter application.
 |
 */
 
-Route::post('/send-line-message', [LineController::class, 'sendMessage']);
-Route::post('/send-line-file', [LineController::class, 'sendFileMessage']);
-Route::post('/line/webhook', [LineWebhookController::class, 'webhook']);
+// --- Public Routes ---
+// เส้นทางสำหรับ Register และ Login ไม่ต้องผ่านการยืนยันตัวตน
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
+// --- Protected Routes (Requires Authentication) ---
+// เส้นทางทั้งหมดในกลุ่มนี้ต้องใช้ Token ที่ได้จากการ Login
+Route::middleware('auth:sanctum')->group(function () {
+    // Auth
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    // User Profile
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
+    Route::get('/notifications', [ProfileController::class, 'notifications']);
+
+    // Projects (CRUD)
+    Route::apiResource('projects', ProjectController::class);
+
+    // Assets (CRUD)
+    Route::apiResource('assets', AssetController::class);
 });
