@@ -39,7 +39,7 @@ Route::middleware('auth')->group(function() {
     Route::get('logout', [AuthController::class, 'logout'])->name('logout');
     Route::controller(PageController::class)->group(function() {
         // --- Dashboard ---
-        Route::get('/', [DashboardController::class, 'dashboardOverview1'])->name('dashboard');
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
         // --- Management (Admin & PM) ---
         Route::prefix('management')->group(function () {

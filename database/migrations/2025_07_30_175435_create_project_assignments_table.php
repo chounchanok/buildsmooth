@@ -14,6 +14,7 @@ return new class extends Migration
             $table->foreignUuid('project_id')->constrained('projects', 'project_id')->onDelete('cascade');
             $table->timestamps();
             $table->unique(['user_id', 'project_id']);
+            $table->softDeletes();
         });
     }
 

@@ -12,6 +12,7 @@ return new class extends Migration
             $table->foreignUuid('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->foreignUuid('team_id')->constrained('teams', 'team_id')->onDelete('cascade');
             $table->primary(['user_id', 'team_id']); // Composite Primary Key
+            $table->softDeletes();
         });
     }
 

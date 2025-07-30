@@ -16,6 +16,7 @@ return new class extends Migration
             $table->decimal('hours_worked', 4, 2);
             $table->text('task_description')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

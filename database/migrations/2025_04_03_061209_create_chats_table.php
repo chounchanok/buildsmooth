@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('user');
             $table->text('message');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

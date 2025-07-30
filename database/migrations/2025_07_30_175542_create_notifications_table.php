@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('related_entity_type')->nullable();
             $table->uuid('related_entity_id')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('role_name', 50);
             $table->text('description')->nullable();
             // Laravel ไม่ต้องใส่ created_at, updated_at ใน migration
+            $table->softDeletes();
         });
     }
 

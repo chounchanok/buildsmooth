@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('external_api_id', 100)->nullable();
             $table->foreignUuid('created_by_user_id')->nullable()->constrained('users', 'user_id')->onDelete('set null');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

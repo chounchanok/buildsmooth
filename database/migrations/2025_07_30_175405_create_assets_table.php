@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignUuid('project_id')->nullable()->constrained('projects', 'project_id')->onDelete('set null');
             $table->foreignUuid('assigned_to_user_id')->nullable()->constrained('users', 'user_id')->onDelete('set null');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
