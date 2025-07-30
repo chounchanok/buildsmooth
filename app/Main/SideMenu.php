@@ -33,28 +33,26 @@ class SideMenu
 
         // ========== เมนูสำหรับผู้ดูแลระบบและผู้จัดการโครงการ (Role 1, 2) ==========
         if (in_array($role_id, [1, 2])) {
-            $menu['devider-1'] = [
-                'devider' => true
-            ];
+            $menu['devider-1'] = 'devider'; // <-- แก้ไขตรงนี้
             $menu['management'] = [
                 'icon' => 'box',
                 'title' => 'จัดการข้อมูล',
                 'sub_menu' => [
                     'projects' => [
                         'icon' => '',
-                        'route_name' => 'projects.index', // ต้องไปสร้าง route ชื่อนี้
+                        'route_name' => 'projects.index',
                         'params' => ['layout' => 'side-menu'],
                         'title' => 'จัดการโครงการ'
                     ],
                     'teams' => [
                         'icon' => '',
-                        'route_name' => 'teams.index', // ต้องไปสร้าง route ชื่อนี้
+                        'route_name' => 'teams.index',
                         'params' => ['layout' => 'side-menu'],
                         'title' => 'จัดการทีมงาน'
                     ],
                     'assets' => [
                         'icon' => '',
-                        'route_name' => 'assets.index', // ต้องไปสร้าง route ชื่อนี้
+                        'route_name' => 'assets.index',
                         'params' => ['layout' => 'side-menu'],
                         'title' => 'จัดการสินทรัพย์'
                     ]
@@ -71,13 +69,13 @@ class SideMenu
                 'sub_menu' => [
                     'users' => [
                         'icon' => '',
-                        'route_name' => 'users.index', // ต้องไปสร้าง route ชื่อนี้
+                        'route_name' => 'users.index',
                         'params' => ['layout' => 'side-menu'],
                         'title' => 'ผู้ใช้งานทั้งหมด'
                     ],
                     'roles' => [
                         'icon' => '',
-                        'route_name' => 'roles.index', // ต้องไปสร้าง route ชื่อนี้
+                        'route_name' => 'roles.index',
                         'params' => ['layout' => 'side-menu'],
                         'title' => 'ตำแหน่งและสิทธิ์'
                     ]
@@ -93,13 +91,13 @@ class SideMenu
                 'sub_menu' => [
                     'my_projects' => [
                         'icon' => '',
-                        'route_name' => 'my-projects.index', // ต้องไปสร้าง route ชื่อนี้
+                        'route_name' => 'my-projects.index',
                         'params' => ['layout' => 'side-menu'],
                         'title' => 'โครงการที่ได้รับมอบหมาย'
                     ],
                     'my_timesheets' => [
                         'icon' => '',
-                        'route_name' => 'my-timesheets.index', // ต้องไปสร้าง route ชื่อนี้
+                        'route_name' => 'my-timesheets.index',
                         'params' => ['layout' => 'side-menu'],
                         'title' => 'บันทึกเวลาทำงาน'
                     ]
@@ -110,16 +108,14 @@ class SideMenu
 
         // ========== เมนูรายงาน (Role 1, 2, 3) ==========
         if (in_array($role_id, [1, 2, 3])) {
-            $menu['devider-2'] = [
-                'devider' => true
-            ];
+            $menu['devider-2'] = 'devider'; // <-- แก้ไขตรงนี้
             $menu['reports'] = [
                 'icon' => 'printer',
                 'title' => 'รายงาน',
                 'sub_menu' => [
                     'timesheet_report' => [
                         'icon' => '',
-                        'route_name' => 'reports.timesheet', // ต้องไปสร้าง route ชื่อนี้
+                        'route_name' => 'reports.timesheet',
                         'params' => ['layout' => 'side-menu'],
                         'title' => 'รายงาน Timesheet'
                     ]
@@ -131,7 +127,7 @@ class SideMenu
         if ($role_id == 5) {
              $menu['client_report'] = [
                 'icon' => 'file-text',
-                'route_name' => 'reports.client', // ต้องไปสร้าง route ชื่อนี้
+                'route_name' => 'reports.client',
                 'params' => ['layout' => 'side-menu'],
                 'title' => 'รายงานความคืบหน้า'
             ];
