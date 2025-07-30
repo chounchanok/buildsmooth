@@ -3,32 +3,64 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use App\Models\User;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-    public function run()
+    public function run(): void
     {
-        // Default credentials
-        \App\Models\User::insert([
-            [ 
-                'name' => 'Left4code',
-                'email' => 'midone@left4code.com',
-                'email_verified_at' => now(),
-                'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-                'gender' => 'male',
-                'active' => 1,
-                'remember_token' => Str::random(10)
-            ]
-        ]);
+        $adminId = Str::uuid()->toString();
+        $pmId = Str::uuid()->toString();
+        $staffId1 = Str::uuid()->toString();
+        $staffId2 = Str::uuid()->toString();
 
-        // Fake users
-        User::factory()->times(9)->create();
+        DB::table('users')->insert([
+            [
+                'user_id' => $adminId,
+                'first_name' => 'แอดมิน',
+                'last_name' => 'สูงสุด',
+                'email' => 'admin@buildsmoot.com',
+                'phone_number' => '0810000001',
+                'password' => Hash::make('password'),
+                'role_id' => 1, // Super Admin
+                'is_active' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+            [
+                'user_id' => $pmId,
+                'first_name' => 'สมชาย',
+                'last_name' => 'ใจดี',
+                'email' => 'pm@buildsmoot.com',
+                'phone_number' => '0810000002',
+                'password' => Hash::make('password'),
+                'role_id' => 2, // Project Manager
+                'is_active' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+            [
+                'user_id' => $staffId1,
+                'first_name' => 'สมศรี',
+                'last_name' => 'ขยันยิ่ง',
+                'email' => 'staff1@buildsmoot.com',
+                'phone_number' => '0810000003',
+                'password' => Hash::make('password'),
+                'role_id' => 4, // Staff
+                'is_active' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+             [
+                'user_id' => $staffId2,
+                'first_name' => 'มานะ',
+                'last_name' => 'อดทน',
+                'email' => 'staff2@buildsmoot.com',
+                'phone_number' => '0810000004',
+                'password' => Hash::make('password'),
+                'role_id' => 4, // Staff
+                'is_active' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+        ]);
     }
 }
