@@ -20,8 +20,8 @@ return new class extends Migration
             $table->timestamp('otp_expiry')->nullable();
             $table->foreignId('role_id')->constrained('roles', 'role_id');
             $table->boolean('is_active')->default(true);
-            $table->timestamps(); // สร้าง created_at และ updated_at
-            $table->softDeletes(); // <-- เพิ่มบรรทัดนี้
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

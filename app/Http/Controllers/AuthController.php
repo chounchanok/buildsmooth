@@ -27,26 +27,26 @@ class AuthController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function username()
+    public function email()
     {
-        return 'username'; // ✅ เปลี่ยนจาก 'email' เป็น 'username'
+        return 'email'; // ✅ เปลี่ยนจาก 'email' เป็น 'username'
     }
 
 
     public function login(\Illuminate\Http\Request $request)
     {
-        // ตรวจสอบค่า username และ password
+        // ตรวจสอบค่า email และ password
         $request->validate([
-            'username' => ['required', 'string'],
+            'email' => ['required', 'string'],
             'password' => ['required'],
         ]);
 
-        // รับค่า username และ password
-        $credentials = $request->only('username', 'password'); 
+        // รับค่า email และ password
+        $credentials = $request->only('email', 'password'); 
 
         // ลองล็อกอิน
         if (!\Auth::attempt($credentials)) {
-            return back()->withErrors(['username' => 'Wrong username or password.']);
+            return back()->withErrors(['email' => 'Wrong email or password.']);
         }
 
         return redirect()->intended('/'); // ส่งไปยังหน้าหลักหลังล็อกอินสำเร็จ

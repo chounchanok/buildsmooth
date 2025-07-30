@@ -3,67 +3,61 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+
+    protected $primaryKey = 'user_id';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillable = [
-        'name', 'email', 'username', 'password',
+        'user_id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone_number',
+        'password',
+        'role_id',
+        'is_active',
     ];
 
-    public function getAuthIdentifierName()
-    {
-        return 'username'; // ใช้ 'username' แทน 'email'
-    }
-
-
-
     /**
-     * The attributes that should be hidden for arrays.
+     * The attributes that should be hidden for serialization.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
     /**
-     * The attributes that should be cast to native types.
+     * The attributes that should be cast.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password' => 'hashed',
     ];
 
     /**
-     * The attributes that appends to returned entities.
-     *
-     * @var array
+     * Get the notifications for the user.
      */
-    protected $appends = ['photo'];
-
-    /**
-     * The getter that return accessible URL for user photo.
-     *
-     * @var array
-     */
-    public function getPhotoUrlAttribute()
+    public function notifications()
     {
-        if ($this->foto !== null) {
-            return url('media/user/' . $this->id . '/' . $this->foto);
-        } else {
-            return url('media-example/no-image.png');
-        }
+        return $this->hasMany(Notification::class, 'user_id', 'user_id');
     }
 }

@@ -13,7 +13,8 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        //
+        $projects = \App\Models\Project::latest()->paginate(10); // ดึงข้อมูลโครงการ
+        return view('projects.index', compact('projects')); // ส่งข้อมูลไปที่ View
     }
 
     /**

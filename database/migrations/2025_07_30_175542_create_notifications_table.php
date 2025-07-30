@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('notifications', function (Blueprint $table) {
-            $table->uuid()->primary(); // Laravel's default notification id
+            $table->uuid()->primary();
             $table->foreignUuid('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->string('title');
             $table->text('message');

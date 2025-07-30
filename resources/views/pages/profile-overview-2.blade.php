@@ -1,7 +1,7 @@
 @extends('../layout/' . $layout)
 
 @section('subhead')
-    <title>โปรไฟล์พนักงาน - AMC AIR</title>
+    <title>โปรไฟล์พนักงาน - Build Smooth</title>
 @endsection
 
 @section('subcontent')

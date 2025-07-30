@@ -1,7 +1,7 @@
 @extends('../layout/' . $layout)
 
 @section('head')
-    <title>Login - AMC AIR</title>
+    <title>Login - Build Smooth</title>
 @endsection
 
 @section('content')
@@ -12,7 +12,7 @@
                 <a href="" class="-intro-x flex items-center pt-5">
                     <img alt="Midone - HTML Admin Template" class="w-6" src="{{ asset('dist/images/logo.svg') }}">
                     <span class="text-white text-lg ml-3">
-                        AMC AIR
+                        Build Smooth
                     </span>
                 </a>
                 <div class="my-auto">
@@ -29,8 +29,8 @@
                     <div class="intro-x mt-2 text-slate-400 xl:hidden text-center">A few more clicks to sign in to your account. Manage all your e-commerce accounts in one place</div>
                     <div class="intro-x mt-8">
                         <form id="login-form">
-                            <input id="username" type="text" class="intro-x login__input form-control py-3 px-4 block" placeholder="Username" value="test@gmail.com">
-                            <div id="error-username" class="login__input-error text-danger mt-2"></div>
+                            <input id="email" type="text" class="intro-x login__input form-control py-3 px-4 block" placeholder="email" value="test@gmail.com">
+                            <div id="error-email" class="login__input-error text-danger mt-2"></div>
                             <input id="password" type="password" class="intro-x login__input form-control py-3 px-4 block mt-4" placeholder="Password" value="123456">
                             <div id="error-password" class="login__input-error text-danger mt-2"></div>
                         </form>
@@ -65,7 +65,7 @@
                 $('#login-form').find('.login__input-error').html('')
 
                 // Post form
-                let username = $('#username').val()
+                let email = $('#email').val()
                 let password = $('#password').val()
 
                 // Loading state
@@ -74,13 +74,13 @@
                 await helper.delay(1500)
 
                 axios.post(`login`, {
-                    username: username,
+                    email: email,
                     password: password
                 }).then(res => {
                     location.href = '/'
                 }).catch(err => {
                     $('#btn-login').html('Login')
-                    if (err.response.data.message != 'Wrong username or password.') {
+                    if (err.response.data.message != 'Wrong email or password.') {
                         for (const [key, val] of Object.entries(err.response.data.errors)) {
                             $(`#${key}`).addClass('border-danger')
                             $(`#error-${key}`).html(val)
