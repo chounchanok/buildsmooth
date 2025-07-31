@@ -45,7 +45,28 @@
                                 <div class="text-slate-500 text-xs whitespace-nowrap mt-0.5">{{ $project->description }}</div>
                             </td>
                             <td class="w-40">
-                                -
+                                @php
+                                    $status_class = '';
+                                    switch ($project->status) {
+                                        case 'In Progress':
+                                            $status_class = 'text-warning';
+                                            break;
+                                        case 'Completed':
+                                            $status_class = 'text-success';
+                                            break;
+                                        case 'On Hold':
+                                            $status_class = 'text-slate-500';
+                                            break;
+                                        case 'Cancelled':
+                                            $status_class = 'text-danger';
+                                            break;
+                                        default: // Not Started
+                                            $status_class = 'text-primary';
+                                    }
+                                @endphp
+                                <div class="flex items-center justify-center {{ $status_class }}">
+                                    <i data-lucide="check-square" class="w-4 h-4 mr-2"></i> {{ $project->status }}
+                                </div>
                             </td>
                             <td class="text-center">{{ $project->start_date }}</td>
                             <td class="table-report__action w-56">
