@@ -23,4 +23,21 @@ class Asset extends Model
         'project_id',
         'assigned_to_user_id',
     ];
+
+    /**
+     * Get the project that the asset belongs to.
+     */
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id', 'project_id');
+    }
+
+    /**
+     * Get the user that is assigned to the asset.
+     */
+    public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_to_user_id', 'user_id');
+    }
 }
+
