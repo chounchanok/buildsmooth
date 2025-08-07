@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\ProfileController;
 // เส้นทางสำหรับ Register และ Login ไม่ต้องผ่านการยืนยันตัวตน
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/roles', [AuthController::class, 'roles']);
 
 // --- Protected Routes (Requires Authentication) ---
 // เส้นทางทั้งหมดในกลุ่มนี้ต้องใช้ Token ที่ได้จากการ Login

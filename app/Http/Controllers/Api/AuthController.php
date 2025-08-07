@@ -22,6 +22,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'phone_number' => 'required|string|max:20|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'project_code' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -35,7 +36,8 @@ class AuthController extends Controller
             'email' => $request->email,
             'phone_number' => $request->phone_number,
             'password' => Hash::make($request->password),
-            'role_id' => 4, // Default role_id for new registration is 'Staff'
+            'project_code' => $request->project_code,
+            'role_id' => $request->role_id
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -46,6 +48,10 @@ class AuthController extends Controller
             'token_type' => 'Bearer',
             'user' => $user
         ], 201);
+    }
+
+    public function get_role(){
+        
     }
 
     /**
