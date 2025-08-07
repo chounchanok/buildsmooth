@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -16,6 +17,7 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        // dd($request->input());
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -50,8 +52,10 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function get_role(){
-        
+    public function roles()
+    {
+        $roles = Role::all();
+        return response()->json($roles);
     }
 
     /**

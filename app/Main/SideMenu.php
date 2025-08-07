@@ -133,6 +133,15 @@ class SideMenu
             ];
         }
 
+        if ($role_id == 1) {
+            $menu['devider-3'] = 'devider';
+            $menu['api_docs'] = [
+                'icon' => 'code',
+                'route_name' => 'api.docs',
+                'params' => ['layout' => 'side-menu'],
+                'title' => 'API Documentation'
+            ];
+        }
 
         return $menu;
     }

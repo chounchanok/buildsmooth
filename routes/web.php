@@ -14,7 +14,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\MyWorkController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ClientReportController;
-
+use App\Http\Controllers\ApiDocumentationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +36,7 @@ Route::controller(AuthController::class)->middleware('loggedin')->group(function
 });
 
 Route::middleware('auth')->group(function() {
+    Route::get('api-documentation', [ApiDocumentationController::class, 'index'])->name('api.docs');
     Route::get('logout', [AuthController::class, 'logout'])->name('logout');
     Route::controller(PageController::class)->group(function() {
         // --- Dashboard ---
