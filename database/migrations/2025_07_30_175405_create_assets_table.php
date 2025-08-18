@@ -6,23 +6,32 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
     {
-        Schema::create('assets', function (Blueprint $table) {
-            $table->uuid('asset_id')->primary();
-            $table->string('asset_name');
-            $table->string('asset_code', 100)->unique()->nullable();
-            $table->text('description')->nullable();
-            $table->string('status', 50)->default('Available');
-            $table->foreignUuid('project_id')->nullable()->constrained('projects', 'project_id')->onDelete('set null');
-            $table->foreignUuid('assigned_to_user_id')->nullable()->constrained('users', 'user_id')->onDelete('set null');
+        Schema::create('project_assignments', function (Blueprint $table) {
+            $table->id('assignment_id');
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedBigInteger('team_member_id');
             $table->timestamps();
-            $table->softDeletes();
+
+            // แก้ไขจาก references('project_id') เป็น references('id')
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
+            $table->foreign('team_member_id')->references('member_id')->on('team_members')->onDelete('cascade');
         });
     }
 
-    public function down(): void
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
     {
-        Schema::dropIfExists('assets');
+        Schema::dropIfExists('project_assignments');
     }
 };
