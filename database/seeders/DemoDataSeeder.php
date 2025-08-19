@@ -4,105 +4,58 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\User; // Import User model
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class DemoDataSeeder extends Seeder
 {
-    public function run(): void
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
     {
-        $pmUser = User::where('email', 'pm@buildsmoot.com')->first();
-        $staffUser1 = User::where('email', 'staff1@buildsmoot.com')->first();
-        $staffUser2 = User::where('email', 'staff2@buildsmoot.com')->first();
+        $projects = [];
+        $projectTypes = ['โครงการ', 'บ้าน', 'อื่นๆ'];
 
-        $teamAlphaId = Str::uuid()->toString();
-        DB::table('teams')->insert([
-            'team_id' => $teamAlphaId,
-            'team_name' => 'ทีม Alpha (ก่อสร้าง)',
-            'team_lead_id' => $pmUser->user_id,
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
+        for ($i = 1; $i <= 10; $i++) {
+            $startDate = Carbon::now()->subDays(rand(10, 60));
+            $endDate = $startDate->copy()->addDays(rand(30, 180));
+            $projectType = $projectTypes[array_rand($projectTypes)];
 
-        DB::table('team_members')->insert([
-            ['user_id' => $pmUser->user_id, 'team_id' => $teamAlphaId],
-            ['user_id' => $staffUser1->user_id, 'team_id' => $teamAlphaId],
-        ]);
-        
-        $projectAId = Str::uuid()->toString();
-        $projectBId = Str::uuid()->toString();
+            $projects[] = [
+                'project_id' => Str::uuid(),
+                'project_type' => $projectType,
+                'project_type_other' => $projectType === 'อื่นๆ' ? 'โครงการพิเศษ ' . $i : null,
+                'project_code' => 'SR-E' . str_pad($i, 3, '0', STR_PAD_LEFT),
+                'reference_code' => 'SD' . rand(100, 500),
+                'project_name' => 'โครงการ ' . Str::random(5) . ' วิลเลจ เฟส ' . ($i % 3 + 1),
+                'po_number' => 'PO' . date('Y') . '-' . rand(1000, 9999),
+                'location_address' => 'ที่อยู่ตัวอย่าง ' . $i . ', กรุงเทพมหานคร',
+                'location_map_link' => 'https://maps.app.goo.gl/example',
+                'is_subscribed' => rand(0, 1) == 1,
+                'team_members' => json_encode([
+                    'สมชาย ใจดี (หัวหน้าโครงการ)',
+                    'สมหญิง มุ่งมั่น (สมาชิก 1)',
+                    'ภานุ สุขสงบ (สมาชิก 2)',
+                ]),
+                'customer_contacts' => json_encode([
+                    'มานี มีสุข (เจ้าของบ้าน)',
+                    'มานะ อดทน (ผู้ติดต่อ)',
+                ]),
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'progress' => rand(5, 95),
+                'description' => 'รายละเอียดงานสำหรับโครงการ ' . $i . ' ที่สร้างขึ้นโดยอัตโนมัติ',
+                'image_description' => 'คำอธิบายรูปภาพสำหรับโครงการ ' . $i,
+                'image_paths' => json_encode([]), // ใส่ path รูปภาพตัวอย่างได้ที่นี่
+                'document_paths' => json_encode([]), // ใส่ path เอกสารตัวอย่างได้ที่นี่
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
 
-        DB::table('projects')->insert([
-            [
-                'project_id' => $projectAId,
-                'project_name' => 'โครงการคอนโด The Grand Buildsmoot',
-                'address' => '123 ถ.สุขุมวิท กรุงเทพฯ',
-                'status' => 'In Progress',
-                'created_by_user_id' => $pmUser->user_id,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'project_id' => $projectBId,
-                'project_name' => 'โครงการหมู่บ้าน Buildsmoot Ville',
-                'address' => '456 ถ.รามคำแหง กรุงเทพฯ',
-                'status' => 'Not Started',
-                'created_by_user_id' => $pmUser->user_id,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-        ]);
-        
-        DB::table('project_assignments')->insert([
-            'assignment_id' => Str::uuid()->toString(),
-            'user_id' => $staffUser1->user_id,
-            'project_id' => $projectAId,
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
-        DB::table('project_assignments')->insert([
-            'assignment_id' => Str::uuid()->toString(),
-            'user_id' => $staffUser2->user_id,
-            'project_id' => $projectAId,
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
-        
-        DB::table('assets')->insert([
-            [
-                'asset_id' => Str::uuid()->toString(),
-                'asset_name' => 'รถแบคโฮ CAT-01',
-                'asset_code' => 'BK-CAT-001',
-                'status' => 'In Use',
-                'project_id' => $projectAId,
-                'assigned_to_user_id' => $staffUser1->user_id,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'asset_id' => Str::uuid()->toString(),
-                'asset_name' => 'เครื่องปั่นไฟ',
-                'asset_code' => 'GEN-005',
-                'status' => 'Available',
-                'project_id' => null,
-                'assigned_to_user_id' => null,
-                'created_at' => now(), 'updated_at' => now(),
-            ]
-        ]);
-        
-         DB::table('timesheets')->insert([
-            [
-                'timesheet_id' => Str::uuid()->toString(),
-                'user_id' => $staffUser1->user_id,
-                'project_id' => $projectAId,
-                'date_worked' => '2025-07-30',
-                'hours_worked' => 8.00,
-                'task_description' => 'ควบคุมการเทปูนฐานรากอาคาร A',
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-             [
-                'timesheet_id' => Str::uuid()->toString(),
-                'user_id' => $staffUser2->user_id,
-                'project_id' => $projectAId,
-                'date_worked' => '2025-07-30',
-                'hours_worked' => 6.50,
-                'task_description' => 'ตรวจสอบความปลอดภัยไซต์งาน',
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-        ]);
+        DB::table('projects')->insert($projects);
     }
 }

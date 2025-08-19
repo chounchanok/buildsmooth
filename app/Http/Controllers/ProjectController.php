@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\User; // 1. เพิ่มการ import Model User
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class ProjectController extends Controller
 {
@@ -24,7 +25,10 @@ class ProjectController extends Controller
      */
     public function create()
     {
-        return view('projects.form');
+        // 2. ดึงรายชื่อผู้ใช้ตาม Role แล้วส่งไปที่ View
+        $teamUsers = User::where('role_id', '>=', 3)->orderBy('first_name')->get();
+        $customerUsers = User::where('role_id', '<=', 2)->orderBy('first_name')->get();
+        return view('projects.form', compact('teamUsers', 'customerUsers'));
     }
 
     /**
@@ -33,39 +37,36 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
+        // 3. อัปเดต Validation Rules
         $validated = $request->validate([
             'project_type' => 'required|string|in:โครงการ,บ้าน,อื่นๆ',
             'project_type_other' => 'required_if:project_type,อื่นๆ|nullable|string|max:255',
             'project_code' => 'required|string|max:255|unique:projects,project_code',
             'reference_code' => 'nullable|string|max:255',
-            'name' => 'required|string|max:255',
+            'project_name' => 'required|string|max:255',
             'po_number' => 'nullable|string|max:255',
             'location_address' => 'nullable|string',
             'location_map_link' => 'nullable|url',
             'is_subscribed' => 'nullable|boolean',
             'team_members' => 'nullable|array',
-            'team_members.*' => 'nullable|string|max:255',
+            'team_members.*' => 'nullable|string|exists:users,user_id', // ตรวจสอบว่าเป็น user_id ที่มีอยู่จริง
             'customer_contacts' => 'nullable|array',
-            'customer_contacts.*' => 'nullable|string|max:255',
+            'customer_contacts.*' => 'nullable|string|exists:users,user_id', // ตรวจสอบว่าเป็น user_id ที่มีอยู่จริง
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'progress' => 'required|integer|min:0|max:100',
             'description' => 'nullable|string',
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048', // 2MB per image
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'documents' => 'nullable|array',
-            'documents.*' => 'file|mimes:pdf|max:5120', // 5MB per document
+            'documents.*' => 'file|mimes:pdf|max:5120',
             'image_description' => 'nullable|string',
         ]);
 
-        // แปลงค่า checkbox
         $validated['is_subscribed'] = $request->has('is_subscribed');
-        
-        // จัดการข้อมูลทีมงานและลูกค้า (กรองค่าว่างออก)
         $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
         $validated['customer_contacts'] = $request->customer_contacts ? array_filter($request->customer_contacts) : [];
 
-        // จัดการการอัปโหลดไฟล์
         if ($request->hasFile('images')) {
             $imagePaths = [];
             foreach ($request->file('images') as $file) {
@@ -94,7 +95,6 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
-        // โดยทั่วไปจะ redirect ไปที่หน้า edit
         return redirect()->route('projects.edit', $project->project_id);
     }
 
@@ -104,7 +104,10 @@ class ProjectController extends Controller
      */
     public function edit(Project $project)
     {
-        return view('projects.form', compact('project'));
+        // 4. ดึงรายชื่อผู้ใช้สำหรับหน้า Edit ด้วย
+        $teamUsers = User::where('role_id', '>=', 3)->orderBy('first_name')->get();
+        $customerUsers = User::where('role_id', '<=', 2)->orderBy('first_name')->get();
+        return view('projects.form', compact('project', 'teamUsers', 'customerUsers'));
     }
 
     /**
@@ -113,42 +116,63 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
-        $request->validate([
-            'project_type' => 'required|string|in:custom,stock,other',
-            'project_code' => 'required|string|max:255|unique:projects,project_code',
-            'project_ref' => 'required|string|max:255|unique:projects,project_ref',
-            'project_po' => 'required|string|max:255|unique:projects,project_po',
+        // 5. อัปเดต Validation Rules สำหรับหน้า Update
+        $validated = $request->validate([
+            'project_type' => 'required|string|in:โครงการ,บ้าน,อื่นๆ',
+            'project_type_other' => 'required_if:project_type,อื่นๆ|nullable|string|max:255',
+            'project_code' => ['required', 'string', 'max:255', Rule::unique('projects')->ignore($project->project_id, 'project_id')],
+            'reference_code' => 'nullable|string|max:255',
             'project_name' => 'required|string|max:255',
-            'customer_name' => 'nullable|string|max:255',
-            'location_house_no' => 'nullable|string|max:255',
-            'location_subdistrict' => 'nullable|string|max:255',
-            'location_district' => 'nullable|string|max:255',
-            'location_province' => 'nullable|string|max:255',
-            'location_postcode' => 'nullable|string|digits:5',
-
-            'shipping_address_same_as_location' => 'nullable|boolean',
-            'shipping_recipient_name' => 'required_if:shipping_address_same_as_location,false|nullable|string|max:255',
-            'shipping_address' => 'required_if:shipping_address_same_as_location,false|nullable|string',
-            'shipping_subdistrict' => 'required_if:shipping_address_same_as_location,false|nullable|string|max:255',
-            'shipping_district' => 'required_if:shipping_address_same_as_location,false|nullable|string|max:255',
-            'shipping_province' => 'required_if:shipping_address_same_as_location,false|nullable|string|max:255',
-            'shipping_postcode' => 'required_if:shipping_address_same_as_location,false|nullable|string|digits:5',
-
-            'main_customer_name' => 'required|string|max:255',
-            'customer_phone' => 'nullable|string|max:255',
-            'contact_person_name' => 'nullable|string|max:255',
-
+            'po_number' => 'nullable|string|max:255',
+            'location_address' => 'nullable|string',
+            'location_map_link' => 'nullable|url',
+            'is_subscribed' => 'nullable|boolean',
+            'team_members' => 'nullable|array',
+            'team_members.*' => 'nullable|string|exists:users,user_id',
+            'customer_contacts' => 'nullable|array',
+            'customer_contacts.*' => 'nullable|string|exists:users,user_id',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'progress' => 'required|integer|min:0|max:100',
             'description' => 'nullable|string',
-
-            'electrical_plan_status' => 'nullable|string|in:new,existing',
-            'plumbing_plan_status' => 'nullable|string|in:new,existing',
-            'priority' => 'nullable|string|max:255',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:pdf|max:5120',
+            'image_description' => 'nullable|string',
         ]);
 
-        $project->update($request->all());
+        $validated['is_subscribed'] = $request->has('is_subscribed');
+        $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
+        $validated['customer_contacts'] = $request->customer_contacts ? array_filter($request->customer_contacts) : [];
+
+        if ($request->hasFile('images')) {
+            // Optional: Delete old images if you want to replace them
+            // foreach ($project->image_paths ?? [] as $oldPath) {
+            //     Storage::disk('public')->delete($oldPath);
+            // }
+            $imagePaths = [];
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('project_images', 'public');
+                $imagePaths[] = $path;
+            }
+            $validated['image_paths'] = $imagePaths;
+        }
+
+        if ($request->hasFile('documents')) {
+            // Optional: Delete old documents
+            // foreach ($project->document_paths ?? [] as $oldPath) {
+            //     Storage::disk('public')->delete($oldPath);
+            // }
+            $documentPaths = [];
+            foreach ($request->file('documents') as $file) {
+                $path = $file->store('project_documents', 'public');
+                $documentPaths[] = $path;
+            }
+            $validated['document_paths'] = $documentPaths;
+        }
+
+        $project->update($validated);
 
         return redirect()->route('projects.index')->with('success', 'อัปเดตข้อมูลโครงการสำเร็จ');
     }
@@ -158,6 +182,14 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project)
     {
+        // Optional: Delete associated files from storage
+        // foreach ($project->image_paths ?? [] as $path) {
+        //     Storage::disk('public')->delete($path);
+        // }
+        // foreach ($project->document_paths ?? [] as $path) {
+        //     Storage::disk('public')->delete($path);
+        // }
+
         $project->delete();
         return redirect()->route('projects.index')->with('success', 'ลบโครงการสำเร็จ');
     }

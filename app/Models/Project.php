@@ -2,12 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids; // 1. Import HasUuids trait
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids; // 2. เพิ่ม HasUuids เข้าไปใช้งาน
+
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'project_id'; // 3. บอก Laravel ว่า Primary Key ของเราคือ 'project_id'
 
     /**
      * The attributes that are mass assignable.
@@ -19,7 +27,7 @@ class Project extends Model
         'project_type_other',
         'project_code',
         'reference_code',
-        'name',
+        'project_name', // ใช้ 'project_name' ให้ตรงกับ migration
         'po_number',
         'location_address',
         'location_map_link',

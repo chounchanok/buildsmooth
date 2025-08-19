@@ -13,7 +13,7 @@
     <div class="grid grid-cols-12 gap-6 mt-5">
         <div class="intro-y col-span-12">
             <form
-                action="{{ isset($project) ? route('projects.update', $project->id) : route('projects.store') }}"
+                action="{{ isset($project) ? route('projects.update', $project->project_id) : route('projects.store') }}"
                 method="POST"
                 enctype="multipart/form-data"
                 x-data="{
@@ -33,15 +33,17 @@
                         <label class="form-label">ประเภทโครงการ</label>
                         <div class="flex flex-col sm:flex-row mt-2">
                             <div class="form-check mr-4">
-                                <input id="type-project" class="form-check-input" type="radio" name="project_type" value="โครงการ" x-model="projectType">
+                                <input id="type-project" class="form-check-input" type="radio" name="project_type" value="โครงการ" x-model="projectType" {{ old('project_type', $project->project_type ?? 'โครงการ') == 'โครงการ' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="type-project">งานโครงการ</label>
                             </div>
                             <div class="form-check mr-4 mt-2 sm:mt-0">
-                                <input id="type-house" class="form-check-input" type="radio" name="project_type" value="บ้าน" x-model="projectType">
+                                {{-- เพิ่ม checked condition ที่นี่ --}}
+                                <input id="type-house" class="form-check-input" type="radio" name="project_type" value="บ้าน" x-model="projectType" {{ old('project_type', $project->project_type ?? '') == 'บ้าน' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="type-house">บ้าน</label>
                             </div>
                             <div class="form-check mr-2 mt-2 sm:mt-0">
-                                <input id="type-other" class="form-check-input" type="radio" name="project_type" value="อื่นๆ" x-model="projectType">
+                                {{-- เพิ่ม checked condition ที่นี่ --}}
+                                <input id="type-other" class="form-check-input" type="radio" name="project_type" value="อื่นๆ" x-model="projectType" {{ old('project_type', $project->project_type ?? '') == 'อื่นๆ' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="type-other">อื่นๆ (โปรดระบุ)</label>
                             </div>
                         </div>
@@ -49,6 +51,7 @@
                             <input id="project_type_other" name="project_type_other" type="text" class="form-control" placeholder="ระบุประเภทโครงการ" value="{{ old('project_type_other', $project->project_type_other ?? '') }}">
                         </div>
                     </div>
+
 
                     {{-- รหัสโครงการ, อ้างอิง, PO --}}
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
@@ -68,8 +71,8 @@
 
                     {{-- ชื่อโครงการ / บ้าน / อื่นๆ --}}
                     <div class="mt-3">
-                        <label for="name" class="form-label">ชื่อโครงการ / บ้าน / อื่นๆ</label>
-                        <input id="name" name="name" type="text" class="form-control" placeholder="Sนภา วิลเลจ" value="{{ old('name', $project->name ?? '') }}">
+                        <label for="project_name" class="form-label">ชื่อโครงการ / บ้าน / อื่นๆ</label>
+                        <input id="project_name" name="project_name" type="text" class="form-control" placeholder="Sนภา วิลเลจ" value="{{ old('project_name', $project->project_name ?? '') }}">
                     </div>
 
                     {{-- สถานที่ตั้ง --}}
@@ -91,10 +94,15 @@
                     {{-- ทีมงาน --}}
                     <div class="mt-3">
                         <label class="form-label">ทีมงาน</label>
-                        <template x-for="(member, index) in teamMembers" :key="index">
+                        <template x-for="(memberId, index) in teamMembers" :key="index">
                             <div class="flex items-center mt-2">
-                                <input type="text" :name="'team_members[' + index + ']'" class="form-control" :placeholder="index === 0 ? 'สมหมาย ใจสมาน (หัวหน้าโครงการ)' : '(สมาชิก ' + index + ')'" x-model="teamMembers[index]">
-                                <button type="button" class="btn btn-danger ml-2" x-show="index > 0" @click="teamMembers.splice(index, 1)">ลบ</button>
+                                <select :name="'team_members[' + index + ']'" class="form-select" x-model="teamMembers[index]">
+                                    <option value="">-- เลือกสมาชิกทีมงาน --</option>
+                                    @foreach($teamUsers as $user)
+                                        <option value="{{ $user->user_id }}">{{ $user->first_name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-danger ml-2" @click="teamMembers.splice(index, 1)" x-show="teamMembers.length > 1">ลบ</button>
                             </div>
                         </template>
                         <button type="button" class="btn btn-outline-secondary mt-2" @click="teamMembers.push('')">เพิ่มสมาชิก</button>
@@ -103,10 +111,15 @@
                     {{-- ชื่อลูกค้า --}}
                     <div class="mt-3">
                         <label class="form-label">ชื่อลูกค้า</label>
-                        <template x-for="(contact, index) in customerContacts" :key="index">
+                        <template x-for="(contactId, index) in customerContacts" :key="index">
                              <div class="flex items-center mt-2">
-                                <input type="text" :name="'customer_contacts[' + index + ']'" class="form-control" :placeholder="index === 0 ? 'มานะ สมานโชค (เจ้าของบ้าน)' : '(สมาชิก ' + index + ')'" x-model="customerContacts[index]">
-                                <button type="button" class="btn btn-danger ml-2" x-show="index > 0" @click="customerContacts.splice(index, 1)">ลบ</button>
+                                <select :name="'customer_contacts[' + index + ']'" class="form-select" x-model="customerContacts[index]">
+                                    <option value="">-- เลือกลูกค้า --</option>
+                                    @foreach($customerUsers as $user)
+                                        <option value="{{ $user->user_id }}">{{ $user->first_name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-danger ml-2" @click="customerContacts.splice(index, 1)" x-show="customerContacts.length > 1">ลบ</button>
                             </div>
                         </template>
                         <button type="button" class="btn btn-outline-secondary mt-2" @click="customerContacts.push('')">เพิ่มสมาชิก</button>

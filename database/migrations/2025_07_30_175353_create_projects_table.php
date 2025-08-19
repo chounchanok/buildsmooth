@@ -14,14 +14,14 @@ return new class extends Migration
     public function up()
     {
         Schema::create('projects', function (Blueprint $table) {
-            $table->id(); // ใช้ id() แบบมาตรฐาน
+            $table->uuid('project_id')->primary();
             
             // ข้อมูลหลัก
             $table->string('project_type'); // งานโครงการ, บ้าน, อื่นๆ
             $table->string('project_type_other')->nullable();
             $table->string('project_code')->unique();
             $table->string('reference_code')->nullable();
-            $table->string('name'); // ชื่อโครงการ / บ้าน / อื่นๆ
+            $table->string('project_name'); // ชื่อโครงการ / บ้าน / อื่นๆ
             $table->string('po_number')->nullable();
             
             // สถานที่
