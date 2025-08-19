@@ -11,19 +11,21 @@ use App\Http\Controllers\Api\ProfileController;
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| API routes for the Flutter application.
-|
 */
 
 // --- Public Routes ---
-// เส้นทางสำหรับ Register และ Login ไม่ต้องผ่านการยืนยันตัวตน
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/roles', [AuthController::class, 'roles']);
 
+// Projects (CRUD)
+Route::apiResource('projects', ProjectController::class)->parameters([
+    'projects' => 'project:project_id' // บอกให้ Laravel รู้จัก project_id
+]);
+
+Route::post('projects/generateCode', [ProjectController::class, 'generateCode']);
+
 // --- Protected Routes (Requires Authentication) ---
-// เส้นทางทั้งหมดในกลุ่มนี้ต้องใช้ Token ที่ได้จากการ Login
 Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -33,10 +35,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
     Route::get('/notifications', [ProfileController::class, 'notifications']);
-
-    // Projects (CRUD)
-    Route::apiResource('projects', ProjectController::class);
-
     // Assets (CRUD)
     Route::apiResource('assets', AssetController::class);
 });

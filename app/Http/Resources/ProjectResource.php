@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage; // <--- เพิ่มบรรทัดนี้
+
+class ProjectResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
+     */
+    public function toArray($request)
+    {
+        return [
+            'project_id' => $this->project_id,
+            'project_type' => $this->project_type,
+            'project_type_other' => $this->project_type_other,
+            'project_code' => $this->project_code,
+            'reference_code' => $this->reference_code,
+            'project_name' => $this->project_name,
+            'po_number' => $this->po_number,
+            'location_address' => $this->location_address,
+            'location_map_link' => $this->location_map_link,
+            'is_subscribed' => $this->is_subscribed,
+            'team_members' => $this->team_members,
+            'customer_contacts' => $this->customer_contacts,
+            'start_date' => optional($this->start_date)->format('Y-m-d'),
+            'end_date' => optional($this->end_date)->format('Y-m-d'),
+            'progress' => $this->progress,
+            'description' => $this->description,
+            'image_description' => $this->image_description,
+            'image_urls' => collect($this->image_paths)->map(fn ($path) => Storage::url($path))->toArray(),
+            'document_urls' => collect($this->document_paths)->map(fn ($path) => Storage::url($path))->toArray(),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
+    }
+}

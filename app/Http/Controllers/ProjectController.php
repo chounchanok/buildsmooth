@@ -64,8 +64,8 @@ class ProjectController extends Controller
         ]);
 
         $validated['is_subscribed'] = $request->has('is_subscribed');
-        $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
-        $validated['customer_contacts'] = $request->customer_contacts ? array_filter($request->customer_contacts) : [];
+        $validated['team_members'] = $request->team_members ? json_encode($request->team_members) : [];
+        $validated['customer_contacts'] = $request->customer_contacts ? json_encode($request->customer_contacts) : [];
 
         if ($request->hasFile('images')) {
             $imagePaths = [];
@@ -143,8 +143,8 @@ class ProjectController extends Controller
         ]);
 
         $validated['is_subscribed'] = $request->has('is_subscribed');
-        $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
-        $validated['customer_contacts'] = $request->customer_contacts ? array_filter($request->customer_contacts) : [];
+        $validated['team_members'] = $request->team_members ? json_encode($request->team_members) : [];
+        $validated['customer_contacts'] = $request->customer_contacts ? json_encode($request->customer_contacts) : [];
 
         if ($request->hasFile('images')) {
             // Optional: Delete old images if you want to replace them

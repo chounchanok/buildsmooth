@@ -3,6 +3,7 @@
 @section('subhead')
     <title>{{ isset($project) ? 'แก้ไขโครงการ' : 'กรอกรายละเอียดโครงการ' }} - Buildsmooth</title>
 @endsection
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 @section('subcontent')
     <div class="intro-y flex items-center mt-8">
@@ -37,12 +38,10 @@
                                 <label class="form-check-label" for="type-project">งานโครงการ</label>
                             </div>
                             <div class="form-check mr-4 mt-2 sm:mt-0">
-                                {{-- เพิ่ม checked condition ที่นี่ --}}
                                 <input id="type-house" class="form-check-input" type="radio" name="project_type" value="บ้าน" x-model="projectType" {{ old('project_type', $project->project_type ?? '') == 'บ้าน' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="type-house">บ้าน</label>
                             </div>
                             <div class="form-check mr-2 mt-2 sm:mt-0">
-                                {{-- เพิ่ม checked condition ที่นี่ --}}
                                 <input id="type-other" class="form-check-input" type="radio" name="project_type" value="อื่นๆ" x-model="projectType" {{ old('project_type', $project->project_type ?? '') == 'อื่นๆ' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="type-other">อื่นๆ (โปรดระบุ)</label>
                             </div>
@@ -51,7 +50,6 @@
                             <input id="project_type_other" name="project_type_other" type="text" class="form-control" placeholder="ระบุประเภทโครงการ" value="{{ old('project_type_other', $project->project_type_other ?? '') }}">
                         </div>
                     </div>
-
 
                     {{-- รหัสโครงการ, อ้างอิง, PO --}}
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
@@ -92,39 +90,48 @@
                     </div>
 
                     {{-- ทีมงาน --}}
-                    <div class="mt-3">
-                        <label class="form-label">ทีมงาน</label>
-                        <template x-for="(memberId, index) in teamMembers" :key="index">
-                            <div class="flex items-center mt-2">
-                                <select :name="'team_members[' + index + ']'" class="form-select" x-model="teamMembers[index]">
-                                    <option value="">-- เลือกสมาชิกทีมงาน --</option>
-                                    @foreach($teamUsers as $user)
-                                        <option value="{{ $user->user_id }}">{{ $user->first_name }}</option>
-                                    @endforeach
-                                </select>
-                                <button type="button" class="btn btn-danger ml-2" @click="teamMembers.splice(index, 1)" x-show="teamMembers.length > 1">ลบ</button>
-                            </div>
-                        </template>
-                        <button type="button" class="btn btn-outline-secondary mt-2" @click="teamMembers.push('')">เพิ่มสมาชิก</button>
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                        <?php 
+                        if(!empty($project->team_members)) {
+                            $team_members = json_decode($project->team_members ?? '[]', true);
+                        } else {
+                            $team_members = [];
+                        }
+                        ?>
+                        <div class="mt-3">
+                            <label class="form-label">ทีมงาน</label>
+                            <select name="team_members[]" multiple class="form-select select2">
+                                <option value="">-- เลือกลูกค้า --</option>
+                                @foreach($teamUsers as $user)
+                                    <option value="{{ $user->user_id }}" {{ (!empty($team_members) ? (in_array($user->user_id, $team_members) ? 'selected' : '') : '') }}>
+                                        {{ $user->first_name }} {{ $user->last_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                    {{-- ชื่อลูกค้า --}}
-                    <div class="mt-3">
-                        <label class="form-label">ชื่อลูกค้า</label>
-                        <template x-for="(contactId, index) in customerContacts" :key="index">
-                             <div class="flex items-center mt-2">
-                                <select :name="'customer_contacts[' + index + ']'" class="form-select" x-model="customerContacts[index]">
-                                    <option value="">-- เลือกลูกค้า --</option>
-                                    @foreach($customerUsers as $user)
-                                        <option value="{{ $user->user_id }}">{{ $user->first_name }}</option>
-                                    @endforeach
-                                </select>
-                                <button type="button" class="btn btn-danger ml-2" @click="customerContacts.splice(index, 1)" x-show="customerContacts.length > 1">ลบ</button>
-                            </div>
-                        </template>
-                        <button type="button" class="btn btn-outline-secondary mt-2" @click="customerContacts.push('')">เพิ่มสมาชิก</button>
-                    </div>
+                        {{-- ชื่อลูกค้า --}}
+                        <?php 
+                        if(!empty($project->customer_contacts)) {
+                            $custiner_contacts = json_decode($project->customer_contacts ?? '[]', true);
+                        } else {
+                            $custiner_contacts = [];
+                        }
 
+                        ?>
+                        <div class="mt-3">
+                            <label class="form-label">ชื่อลูกค้า</label>
+                            <select name="customer_contacts[]" multiple class="form-select select2">
+                                <option value="">-- เลือกลูกค้า --</option>
+                                @foreach($customerUsers as $user)
+                                    <option value="{{ $user->user_id }}" {{ (!empty($custiner_contacts) ? (in_array($user->user_id, $custiner_contacts) ? 'selected' : '') : '') }}>
+                                        {{ $user->first_name }} {{ $user->last_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    
                     {{-- วันที่และ Progress --}}
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                         <div>
@@ -136,10 +143,10 @@
                             <input id="end_date" name="end_date" type="date" class="form-control" value="{{ old('end_date', isset($project) ? optional($project->end_date)->format('Y-m-d') : '') }}">
                         </div>
                         <div>
-                            <label for="progress" class="form-label">Process ความก้าวหน้า (%)</label>
+                            <label for="progress" class="form-label">Process ความก้าวหน้า ({{ old('progress', isset($project) ? $project->progress : 0) }}%)</label>
                             <div class="flex items-center">
-                                <input id="progress" type="range" name="progress" class="form-range w-full" min="0" max="100" x-model="progress">
-                                <span class="ml-3 w-12 text-center" x-text="progress + '%'"></span>
+                                <input id="progress" type="range" name="progress" class="form-range w-full" min="0" max="100" x-model="progress" value="{{ old('progress', isset($project) ? $project->progress : 0) }}">
+                                <span class="ml-3 w-12 text-center" x-text="{{ old('progress', isset($project) ? $project->progress : 0) }} + '%'"></span>
                             </div>
                         </div>
                     </div>
@@ -183,3 +190,10 @@
         <script src="//unpkg.com/alpinejs" defer></script>
     @endpush
 @endonce
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2').select2();
+    });
+</script>
