@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
+use App\Http\Resources\UserResource; // เพิ่มการ import UserResource
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -17,7 +18,6 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        // dd($request->input());
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -25,22 +25,25 @@ class AuthController extends Controller
             'phone_number' => 'required|string|max:20|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'project_code' => 'required|string',
+            'role_id' => 'required|integer|exists:roles,role_id',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:10240', // เพิ่ม validation สำหรับรูปภาพ
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $user = User::create([
-            'user_id' => Str::uuid(),
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone_number' => $request->phone_number,
-            'password' => Hash::make($request->password),
-            'project_code' => $request->project_code,
-            'role_id' => $request->role_id
-        ]);
+        $data = $validator->validated();
+        $data['user_id'] = Str::uuid();
+        $data['password'] = Hash::make($request->password);
+
+        // จัดการการอัปโหลดไฟล์
+        if ($request->hasFile('profile_image')) {
+            $path = $request->file('profile_image')->store('profile_images', 'public');
+            $data['profile_image_path'] = $path;
+        }
+
+        $user = User::create($data);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -48,7 +51,7 @@ class AuthController extends Controller
             'message' => 'User registered successfully',
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => new UserResource($user) // ใช้ UserResource ในการตอบกลับ
         ], 201);
     }
 
@@ -84,7 +87,7 @@ class AuthController extends Controller
             'message' => 'Login successful',
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => new UserResource($user) // ใช้ UserResource ในการตอบกลับ
         ]);
     }
 
