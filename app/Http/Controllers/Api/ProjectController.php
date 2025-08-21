@@ -79,9 +79,9 @@ class ProjectController extends Controller
         return new ProjectResource($project);
     }
     
-    public function show(Project $project_id)
+    public function show(Project $project)
     {
-        return new ProjectResource($project_id);
+        return new ProjectResource($project);
     }
     
     public function update(Request $request, Project $project)
@@ -100,9 +100,9 @@ class ProjectController extends Controller
         return new ProjectResource($project);
     }
 
-    public function destroy(Project $project_id)
+    public function destroy(Project $project)
     {
-        $project_id->delete();
+        $project->delete();
         return response()->noContent();
     }
 
