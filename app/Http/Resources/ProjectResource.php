@@ -13,6 +13,25 @@ class ProjectResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
+
+    // ฟังก์ชัน Helper เพื่อลดการเขียนโค้ดซ้ำซ้อน
+    $getUserNames = function ($userIds) {
+        // ตรวจสอบก่อนว่ามีข้อมูลหรือไม่ ถ้าเป็น null ให้ return array ว่าง
+        if (empty($userIds)) {
+            return [];
+        }
+
+        // ค้นหา User จาก ID ทั้งหมดที่มีใน array
+        // สมมติว่าคอลัมน์ที่เก็บ UUID ในตาราง users คือ 'id'
+        return User::whereIn('id', $userIds)
+            ->get()
+            ->map(function ($user) {
+                // ต่อชื่อและนามสกุลเข้าด้วยกัน
+                return trim($user->first_name . ' ' . $user->last_name);
+            })
+            ->all(); // แปลง Collection กลับเป็น PHP array
+    };
+
     public function toArray($request)
     {
         return [
@@ -26,8 +45,8 @@ class ProjectResource extends JsonResource
             'location_address' => $this->location_address,
             'location_map_link' => $this->location_map_link,
             'is_subscribed' => $this->is_subscribed,
-            'team_members' => $this->team_members,
-            'customer_contacts' => $this->customer_contacts,
+            'team_members' => $getUserNames($this->team_members),
+            'customer_contacts' => $getUserNames($this->customer_contacts),
             'start_date' => optional($this->start_date)->format('Y-m-d'),
             'end_date' => optional($this->end_date)->format('Y-m-d'),
             'progress' => $this->progress,
