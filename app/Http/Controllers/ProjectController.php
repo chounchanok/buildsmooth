@@ -47,7 +47,7 @@ class ProjectController extends Controller
             'po_number' => 'nullable|string|max:255',
             'location_address' => 'nullable|string',
             'location_map_link' => 'nullable|url',
-            'is_subscribed' => 'nullable|boolean',
+            'is_subscribed' => 'nullable|string',
             'team_members' => 'nullable|array',
             'team_members.*' => 'nullable|string|exists:users,user_id', // ตรวจสอบว่าเป็น user_id ที่มีอยู่จริง
             'customer_contacts' => 'nullable|array',
@@ -126,7 +126,7 @@ class ProjectController extends Controller
             'po_number' => 'nullable|string|max:255',
             'location_address' => 'nullable|string',
             'location_map_link' => 'nullable|url',
-            'is_subscribed' => 'nullable|boolean',
+            'is_subscribed' => 'nullable|string',
             'team_members' => 'nullable|array',
             'team_members.*' => 'nullable|string|exists:users,user_id',
             'customer_contacts' => 'nullable|array',

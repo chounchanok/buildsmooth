@@ -51,7 +51,6 @@ class Project extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'is_subscribed' => 'boolean',
         'progress' => 'integer',
         'team_members' => 'array',
         'customer_contacts' => 'array',
