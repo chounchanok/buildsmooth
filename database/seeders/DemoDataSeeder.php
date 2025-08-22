@@ -34,7 +34,7 @@ class DemoDataSeeder extends Seeder
                 'po_number' => 'PO' . date('Y') . '-' . rand(1000, 9999),
                 'location_address' => 'ที่อยู่ตัวอย่าง ' . $i . ', กรุงเทพมหานคร',
                 'location_map_link' => 'https://maps.app.goo.gl/example',
-                'is_subscribed' => rand(0, 1) == 1,
+                'is_subscribed' => '1',
                 'team_members' => json_encode([
                     'สมชาย ใจดี (หัวหน้าโครงการ)',
                     'สมหญิง มุ่งมั่น (สมาชิก 1)',
