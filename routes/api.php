@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\ProfileController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/roles', [AuthController::class, 'roles']);
+Route::get('/team_members', [AuthController::class, 'team_members']);
+Route::get('/customer_contacts', [AuthController::class, 'customer_contacts']);
 
 // Projects (CRUD)
 Route::apiResource('projects', ProjectController::class)->parameters([

@@ -25,7 +25,7 @@ class TeamController extends Controller
     public function create()
     {
         // ดึงรายชื่อผู้ใช้ที่มี role Project Manager หรือ Team Lead มาเป็นตัวเลือกหัวหน้าทีม
-        $teamLeads = User::whereIn('role_id', [2, 3])->get();
+        $teamLeads = User::whereIn('role_id', [3, 4])->get();
         return view('teams.form', compact('teamLeads'));
     }
 
@@ -52,7 +52,7 @@ class TeamController extends Controller
      */
     public function edit(Team $team)
     {
-        $teamLeads = User::whereIn('role_id', [2, 3])->get();
+        $teamLeads = User::whereIn('role_id', [3, 4])->get();
         return view('teams.form', compact('team', 'teamLeads'));
     }
 

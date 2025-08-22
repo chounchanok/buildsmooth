@@ -61,6 +61,18 @@ class AuthController extends Controller
         return response()->json($roles);
     }
 
+    public function team_members()
+    {
+        $team_members = User::whereIn('role_id', [3, 4])->get();
+        return response()->json($team_members);
+    }
+
+    public function customer_contacts()
+    {
+        $customer_contacts = User::whereIn('role_id', [1, 2, 5])->get();
+        return response()->json($customer_contacts);
+    }
+
     /**
      * Login user and create token.
      */

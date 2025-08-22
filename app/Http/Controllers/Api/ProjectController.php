@@ -25,7 +25,7 @@ class ProjectController extends Controller
     {
         $request->validate(['project_type' => 'required|string|in:โครงการ,บ้าน,อื่นๆ']);
         $newCode = $this->auto_generateCode($request->project_type);
-        
+
         if ($newCode === null) {
             return response()->json(['error' => 'ไม่สามารถสร้างรหัสโครงการได้, อาจถึงขีดจำกัดแล้ว'], 500);
         }
@@ -73,17 +73,17 @@ class ProjectController extends Controller
         $validated['customer_contacts'] = $request->customer_contacts ? array_filter($request->customer_contacts) : [];
 
         // ... (File upload logic remains the same) ...
-        
+
         $project = Project::create($validated);
 
         return new ProjectResource($project);
     }
-    
+
     public function show(Project $project)
     {
         return new ProjectResource($project);
     }
-    
+
     public function update(Request $request, Project $project)
     {
          $validated = $request->validate([
@@ -92,9 +92,25 @@ class ProjectController extends Controller
             'project_code' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('projects')->ignore($project->project_id, 'project_id')],
             'reference_code' => 'nullable|string|max:255',
             'project_name' => 'sometimes|required|string|max:255',
-            // ... other validation rules
+            'po_number' => 'nullable|string|max:255',
+            'location_address' => 'nullable|string',
+            'location_map_link' => 'nullable|url',
+            'is_subscribed' => 'nullable|boolean',
+            'team_members' => 'nullable|array',
+            'team_members.*' => 'nullable|string|exists:users,user_id',
+            'customer_contacts' => 'nullable|array',
+            'customer_contacts.*' => 'nullable|string|exists:users,user_id',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'progress' => 'required|integer|min:0|max:100',
+            'description' => 'nullable|string',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:pdf|max:5120',
+            'image_description' => 'nullable|string',
         ]);
-        
+
         $project->update($validated);
 
         return new ProjectResource($project);
@@ -133,7 +149,7 @@ class ProjectController extends Controller
         // จัดเรียงรหัสตาม Logic ที่ซับซ้อน
         usort($allCodes, [$this, 'customSort']);
         $lastCode = end($allCodes);
-        
+
         $coreCode = substr($lastCode, 1);
         $nextCoreCode = '';
 
@@ -164,7 +180,7 @@ class ProjectController extends Controller
             $numbers = 0;
             $l2 = $letters[1];
             $l1 = $letters[0];
-            
+
             if ($l2 < 'Z') {
                 $l2++;
             } else {
