@@ -6,31 +6,24 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Exception;
 
 class ProjectController extends Controller
 {
-    // ... index(), show(), update(), destroy() methods remain the same ...
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        return ProjectResource::collection(Project::latest()->paginate(10));
-    }
-
-    /**
-     * Generate a new project code based on the project type.
-     * สร้างรหัสโครงการใหม่อัตโนมัติตามประเภทโครงการ
-     */
-    public function generateCode(Request $request)
-    {
-        $request->validate(['project_type' => 'required|string|in:โครงการ,บ้าน,อื่นๆ']);
-        $newCode = $this->auto_generateCode($request->project_type);
-
-        if ($newCode === null) {
-            return response()->json(['error' => 'ไม่สามารถสร้างรหัสโครงการได้, อาจถึงขีดจำกัดแล้ว'], 500);
+        try {
+            return ProjectResource::collection(Project::latest()->paginate(10));
+        } catch (Exception $e) {
+            Log::error('Error fetching projects: ' . $e->getMessage());
+            return response()->json(['message' => 'เกิดข้อผิดพลาดในการดึงข้อมูลโครงการ'], 500);
         }
-
-        return response()->json(['project_code' => $newCode]);
     }
 
     /**
@@ -52,7 +45,7 @@ class ProjectController extends Controller
             'po_number' => 'nullable|string|max:255',
             'location_address' => 'nullable|string',
             'location_map_link' => 'nullable|url',
-            'is_subscribed' => 'nullable|string',
+            'is_subscribed' => 'nullable|boolean',
             'team_members' => 'nullable|array',
             'team_members.*' => 'nullable|string|exists:users,user_id',
             'customer_contacts' => 'nullable|array',
@@ -68,81 +61,137 @@ class ProjectController extends Controller
             'image_description' => 'nullable|string',
         ]);
 
-        $validated['is_subscribed'] = $request->boolean('is_subscribed');
-        $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
-        $validated['customer_contacts'] = $request->customer_contacts ? array_filter($request->customer_contacts) : [];
+        try {
+            $validated['is_subscribed'] = $request->boolean('is_subscribed');
+            $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
+            $validated['customer_contacts'] = $request->customer_contacts ? array_filter($request->customer_contacts) : [];
 
-        if ($request->hasFile('images')) {
-            $imagePaths = [];
-            foreach ($request->file('images') as $file) {
-                $path = $file->store('project_images', 'public');
-                $imagePaths[] = $path;
+            if ($request->hasFile('images')) {
+                $imagePaths = [];
+                foreach ($request->file('images') as $file) {
+                    $path = $file->store('project_images', 'public');
+                    $imagePaths[] = $path;
+                }
+                $validated['image_paths'] = $imagePaths;
             }
-            $validated['image_paths'] = $imagePaths;
-        }
 
-        if ($request->hasFile('documents')) {
-            $documentPaths = [];
-            foreach ($request->file('documents') as $file) {
-                $path = $file->store('project_documents', 'public');
-                $documentPaths[] = $path;
+            if ($request->hasFile('documents')) {
+                $documentPaths = [];
+                foreach ($request->file('documents') as $file) {
+                    $path = $file->store('project_documents', 'public');
+                    $documentPaths[] = $path;
+                }
+                $validated['document_paths'] = $documentPaths;
             }
-            $validated['document_paths'] = $documentPaths;
+            
+            $project = Project::create($validated);
+
+            return new ProjectResource($project);
+        } catch (Exception $e) {
+            Log::error('Error creating project: ' . $e->getMessage());
+            return response()->json(['message' => 'เกิดข้อผิดพลาดในการสร้างโครงการ'], 500);
         }
-
-        $project = Project::create($validated);
-
-        return new ProjectResource($project);
     }
 
+    /**
+     * Display the specified resource.
+     */
     public function show(Project $project)
     {
-        return new ProjectResource($project);
+        try {
+            return new ProjectResource($project);
+        } catch (Exception $e) {
+            Log::error('Error showing project ' . $project->project_id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'ไม่พบข้อมูลโครงการ'], 404);
+        }
     }
 
-    public function update(Request $request, Project $project)
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update_projects(Request $request, Project $project)
     {
-         $validated = $request->validate([
+
+        $validated = $request->validate([
             'project_type' => 'sometimes|required|string|in:โครงการ,บ้าน,อื่นๆ',
             'project_type_other' => 'required_if:project_type,อื่นๆ|nullable|string|max:255',
-            'project_code' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('projects')->ignore($project->project_id, 'project_id')],
+            'project_code' => 'required_if:project_code,อื่นๆ|nullable|string|max:255',
             'reference_code' => 'nullable|string|max:255',
             'project_name' => 'sometimes|required|string|max:255',
             'po_number' => 'nullable|string|max:255',
             'location_address' => 'nullable|string',
             'location_map_link' => 'nullable|url',
-            'is_subscribed' => 'nullable|string',
+            'is_subscribed' => 'sometimes|boolean',
             'team_members' => 'nullable|array',
             'team_members.*' => 'nullable|string|exists:users,user_id',
             'customer_contacts' => 'nullable|array',
             'customer_contacts.*' => 'nullable|string|exists:users,user_id',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'progress' => 'required|integer|min:0|max:100',
+            'progress' => 'sometimes|required|integer|min:0|max:100',
             'description' => 'nullable|string',
-            'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
-            'documents' => 'nullable|array',
-            'documents.*' => 'file|mimes:pdf|max:5120',
             'image_description' => 'nullable|string',
         ]);
 
-        $project->update($validated);
 
-        return new ProjectResource($project);
+        try {
+            if($request->has('is_subscribed')) {
+                $validated['is_subscribed'] = $request->boolean('is_subscribed');
+            }
+            if($request->has('team_members')) {
+                $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
+            }
+            if($request->has('customer_contacts')) {
+                $validated['customer_contacts'] = $request->customer_contacts ? array_filter($request->customer_contacts) : [];
+            }
+
+            if ($request->hasFile('images')) {
+                $imagePaths = [];
+                foreach ($request->file('images') as $file) {
+                    $path = $file->store('project_images', 'public');
+                    $imagePaths[] = $path;
+                }
+                $validated['image_paths'] = $imagePaths;
+            }
+
+            if ($request->hasFile('documents')) {
+                $documentPaths = [];
+                foreach ($request->file('documents') as $file) {
+                    $path = $file->store('project_documents', 'public');
+                    $documentPaths[] = $path;
+                }
+                $validated['document_paths'] = $documentPaths;
+            }
+
+            dd($request->file(), $validated, $project->project_id);
+
+            $project->update($validated);
+
+            return new ProjectResource($project);
+        } catch (Exception $e) {
+            Log::error('Error updating project ' . $project->project_id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'เกิดข้อผิดพลาดในการอัปเดตโครงการ'], 500);
+        }
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(Project $project)
     {
-        $project->delete();
-        return response()->noContent();
+        try {
+            $project->delete();
+            return response()->noContent();
+        } catch (Exception $e) {
+            Log::error('Error deleting project ' . $project->project_id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'เกิดข้อผิดพลาดในการลบโครงการ'], 500);
+        }
     }
 
 
     // --- Private Helper Methods for Code Generation ---
-
-    private function auto_generateCode($projectType)
-    {
+    // (โค้ดส่วนนี้เหมือนเดิม)
+    private function auto_generateCode($projectType) {
         $prefixMap = [
             'โครงการ' => 'C',
             'บ้าน' => 'H',
@@ -154,30 +203,27 @@ class ProjectController extends Controller
         }
 
         $prefix = $prefixMap[$projectType];
-
-        // ดึงรหัสล่าสุดของประเภทนั้นๆ มาทั้งหมดเพื่อหาตัวล่าสุดจริงๆ
         $allCodes = Project::where('project_code', 'LIKE', $prefix . '%')->pluck('project_code')->toArray();
 
         if (empty($allCodes)) {
             return $prefix . 'AA00';
         }
 
-        // จัดเรียงรหัสตาม Logic ที่ซับซ้อน
         usort($allCodes, [$this, 'customSort']);
         $lastCode = end($allCodes);
-
+        
         $coreCode = substr($lastCode, 1);
         $nextCoreCode = '';
 
         if ($prefix === 'H' || $prefix === 'T') {
             $nextCoreCode = $this->incrementLLNN($coreCode);
         } elseif ($prefix === 'C') {
-            if (preg_match('/^[A-Z]{2}\d{2}$/', $coreCode)) { // Pattern: CAA00
+            if (preg_match('/^[A-Z]{2}\d{2}$/', $coreCode)) {
                 $nextCoreCode = ($coreCode === 'ZZ99') ? '1A00' : $this->incrementLLNN($coreCode);
-            } elseif (preg_match('/^[1-9][A-Z]\d{2}$/', $coreCode)) { // Pattern: C1A00
-                $nextCoreCode = ($coreCode === '9Z99') ? '0000' : $this->incrementNLNN($coreCode); // Jump to numeric
-            } elseif (preg_match('/^\d{4}$/', $coreCode)) { // Pattern: C0000
-                if ($coreCode === '9999') return null; // Limit reached
+            } elseif (preg_match('/^[1-9][A-Z]\d{2}$/', $coreCode)) {
+                $nextCoreCode = ($coreCode === '9Z99') ? '0000' : $this->incrementNLNN($coreCode);
+            } elseif (preg_match('/^\d{4}$/', $coreCode)) {
+                if ($coreCode === '9999') return null;
                 $nextNum = intval($coreCode) + 1;
                 $nextCoreCode = str_pad($nextNum, 4, '0', STR_PAD_LEFT);
             }
@@ -185,9 +231,7 @@ class ProjectController extends Controller
 
         return $nextCoreCode ? $prefix . $nextCoreCode : null;
     }
-
-    private function incrementLLNN($code)
-    {
+    private function incrementLLNN($code) {
         $letters = substr($code, 0, 2);
         $numbers = intval(substr($code, 2, 2));
 
@@ -196,7 +240,7 @@ class ProjectController extends Controller
             $numbers = 0;
             $l2 = $letters[1];
             $l1 = $letters[0];
-
+            
             if ($l2 < 'Z') {
                 $l2++;
             } else {
@@ -211,9 +255,7 @@ class ProjectController extends Controller
         }
         return $letters . str_pad($numbers, 2, '0', STR_PAD_LEFT);
     }
-
-    private function incrementNLNN($code)
-    {
+    private function incrementNLNN($code) {
         $num_char = $code[0];
         $letter_char = $code[1];
         $numbers = intval(substr($code, 2, 2));
@@ -234,9 +276,7 @@ class ProjectController extends Controller
         }
         return $num_char . $letter_char . str_pad($numbers, 2, '0', STR_PAD_LEFT);
     }
-
-    private function customSort($a, $b)
-    {
+    private function customSort($a, $b) {
         $patternA = $this->getCodePatternOrder(substr($a, 1));
         $patternB = $this->getCodePatternOrder(substr($b, 1));
 
@@ -245,12 +285,10 @@ class ProjectController extends Controller
         }
         return $a <=> $b;
     }
-
-    private function getCodePatternOrder($coreCode)
-    {
-        if (preg_match('/^[A-Z]{2}\d{2}$/', $coreCode)) return 1; // CAA00
-        if (preg_match('/^[1-9][A-Z]\d{2}$/', $coreCode)) return 2; // C1A00
-        if (preg_match('/^\d{4}$/', $coreCode)) return 3; // C0000
-        return 0; // Default/Other
+    private function getCodePatternOrder($coreCode) {
+        if (preg_match('/^[A-Z]{2}\d{2}$/', $coreCode)) return 1;
+        if (preg_match('/^[1-9][A-Z]\d{2}$/', $coreCode)) return 2;
+        if (preg_match('/^\d{4}$/', $coreCode)) return 3;
+        return 0;
     }
 }
