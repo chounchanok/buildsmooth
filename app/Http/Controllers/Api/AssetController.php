@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Asset; // ต้องสร้าง Model Asset ก่อน
+use App\Models\Asset;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class AssetController extends Controller
 {
@@ -26,25 +27,45 @@ class AssetController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'asset_name' => 'required|string|max:255',
             'asset_code' => 'nullable|string|max:100|unique:assets,asset_code',
             'description' => 'nullable|string',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'project_id' => 'nullable|uuid|exists:projects,project_id',
+            'team_members' => 'nullable|array',
+            'team_members.*' => 'nullable|string|exists:users,user_id',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:pdf|max:5120',
+            'document_detail' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+        // จัดการข้อมูล Array
+        $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
+
+        // จัดการการอัปโหลดไฟล์
+        if ($request->hasFile('images')) {
+            $imagePaths = [];
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('asset_images', 'public');
+                $imagePaths[] = $path;
+            }
+            $validated['image_paths'] = $imagePaths;
         }
 
-        $asset = Asset::create([
-            'asset_id' => Str::uuid(),
-            'asset_name' => $request->asset_name,
-            'asset_code' => $request->asset_code,
-            'description' => $request->description,
-            'project_id' => $request->project_id,
-            'assigned_to_user_id' => auth()->id(), // กำหนดให้ผู้สร้างเป็นผู้ดูแลเบื้องต้น
-        ]);
+        if ($request->hasFile('documents')) {
+            $documentPaths = [];
+            foreach ($request->file('documents') as $file) {
+                $path = $file->store('asset_documents', 'public');
+                $documentPaths[] = $path;
+            }
+            $validated['document_paths'] = $documentPaths;
+        }
+        
+        $asset = Asset::create($validated);
 
         return response()->json($asset, 201);
     }
@@ -64,20 +85,48 @@ class AssetController extends Controller
      */
     public function update(Request $request, Asset $asset)
     {
-        $validator = Validator::make($request->all(), [
-            'asset_name' => 'required|string|max:255',
-            'asset_code' => 'nullable|string|max:100|unique:assets,asset_code,' . $asset->asset_id . ',asset_id',
+        $validated = $request->validate([
+            'asset_name' => 'sometimes|required|string|max:255',
+            'asset_code' => ['nullable', 'string', 'max:100', Rule::unique('assets')->ignore($asset->asset_id, 'asset_id')],
             'description' => 'nullable|string',
-            'status' => 'sometimes|string|max:50',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'project_id' => 'nullable|uuid|exists:projects,project_id',
-            'assigned_to_user_id' => 'nullable|uuid|exists:users,user_id',
+            'team_members' => 'nullable|array',
+            'team_members.*' => 'nullable|string|exists:users,user_id',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:pdf|max:5120',
+            'document_detail' => 'nullable|string',
+            'status' => 'sometimes|string|max:50',
         ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+        
+        // จัดการข้อมูล Array (ถ้ามีการส่งมา)
+        if ($request->has('team_members')) {
+            $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
         }
 
-        $asset->update($request->all());
+        // จัดการการอัปโหลดไฟล์ (ถ้ามีการส่งมา)
+        if ($request->hasFile('images')) {
+            $imagePaths = [];
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('asset_images', 'public');
+                $imagePaths[] = $path;
+            }
+            $validated['image_paths'] = $imagePaths;
+        }
+
+        if ($request->hasFile('documents')) {
+            $documentPaths = [];
+            foreach ($request->file('documents') as $file) {
+                $path = $file->store('asset_documents', 'public');
+                $documentPaths[] = $path;
+            }
+            $validated['document_paths'] = $documentPaths;
+        }
+        
+        $asset->update($validated);
 
         return response()->json($asset);
     }
@@ -88,7 +137,16 @@ class AssetController extends Controller
      */
     public function destroy(Asset $asset)
     {
+        // ลบไฟล์ที่เกี่ยวข้อง
+        foreach ($asset->image_paths ?? [] as $path) {
+            Storage::disk('public')->delete($path);
+        }
+        foreach ($asset->document_paths ?? [] as $path) {
+            Storage::disk('public')->delete($path);
+        }
+
         $asset->delete();
         return response()->json(null, 204); // 204 No Content
     }
 }
+

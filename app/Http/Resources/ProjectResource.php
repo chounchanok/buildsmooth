@@ -3,7 +3,8 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage; // <--- เพิ่มบรรทัดนี้
+use Illuminate\Support\Facades\Storage;
+use App\Models\User;
 
 class ProjectResource extends JsonResource
 {
@@ -15,25 +16,30 @@ class ProjectResource extends JsonResource
      */
 
     // ฟังก์ชัน Helper เพื่อลดการเขียนโค้ดซ้ำซ้อน
-    $getUserNames = function ($userIds) {
-        // ตรวจสอบก่อนว่ามีข้อมูลหรือไม่ ถ้าเป็น null ให้ return array ว่าง
-        if (empty($userIds)) {
-            return [];
-        }
-
-        // ค้นหา User จาก ID ทั้งหมดที่มีใน array
-        // สมมติว่าคอลัมน์ที่เก็บ UUID ในตาราง users คือ 'id'
-        return User::whereIn('id', $userIds)
-            ->get()
-            ->map(function ($user) {
-                // ต่อชื่อและนามสกุลเข้าด้วยกัน
-                return trim($user->first_name . ' ' . $user->last_name);
-            })
-            ->all(); // แปลง Collection กลับเป็น PHP array
-    };
 
     public function toArray($request)
     {
+        $getUserNames = function ($userIds) {
+            // ตรวจสอบก่อนว่ามีข้อมูลหรือไม่ ถ้าเป็น null ให้ return array ว่าง
+            if (empty($userIds)) {
+                return [];
+            }
+
+            // ค้นหา User จาก ID ทั้งหมดที่มีใน array
+            // สมมติว่าคอลัมน์ที่เก็บ UUID ในตาราง users คือ 'id'
+            if(is_array($userIds) === false){
+                $userIds = json_decode($userIds, true);
+            }
+            
+            return User::whereIn('user_id', $userIds)
+                ->get()
+                ->map(function ($user) {
+                    // ต่อชื่อและนามสกุลเข้าด้วยกัน
+                    return trim($user->first_name . ' ' . $user->last_name);
+                })
+                ->all(); // แปลง Collection กลับเป็น PHP array
+        };
+        
         return [
             'project_id' => $this->project_id,
             'project_type' => $this->project_type,

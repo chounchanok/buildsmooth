@@ -15,18 +15,32 @@ class Asset extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'asset_id',
         'asset_name',
         'asset_code',
         'description',
         'status',
         'project_id',
         'assigned_to_user_id',
+        'start_date',
+        'end_date',
+        'team_members',
+        'image_paths',
+        'document_paths',
+        'document_detail',
     ];
 
     /**
      * Get the project that the asset belongs to.
      */
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'team_members' => 'array',
+        'image_paths' => 'array',
+        'document_paths' => 'array',
+    ];
+
     public function project()
     {
         return $this->belongsTo(Project::class, 'project_id', 'project_id');

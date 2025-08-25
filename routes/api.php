@@ -24,6 +24,7 @@ Route::get('/customer_contacts', [AuthController::class, 'customer_contacts']);
 Route::apiResource('projects', ProjectController::class)->parameters([
     'projects' => 'project:project_id' // บอกให้ Laravel รู้จัก project_id
 ]);
+Route::apiResource('assets', AssetController::class);
 
 Route::post('projects/generateCode', [ProjectController::class, 'generateCode']);
 
@@ -38,5 +39,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
     Route::get('/notifications', [ProfileController::class, 'notifications']);
     // Assets (CRUD)
-    Route::apiResource('assets', AssetController::class);
 });

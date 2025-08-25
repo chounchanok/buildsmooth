@@ -23,10 +23,11 @@ class AuthController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'phone_number' => 'required|string|max:20|unique:users',
+            'company' => 'nullable|string',
             'password' => 'required|string|min:8|confirmed',
             'project_code' => 'required|string',
             'role_id' => 'required|integer|exists:roles,role_id',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:10240', // เพิ่ม validation สำหรับรูปภาพ
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:10240',
         ]);
 
         if ($validator->fails()) {
