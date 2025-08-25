@@ -20,9 +20,9 @@ class Asset extends Model
         'description',
         'status',
         'project_id',
-        'assigned_to_user_id',
         'start_date',
         'end_date',
+        'assigned_user',
         'team_members',
         'image_paths',
         'document_paths',
@@ -36,7 +36,6 @@ class Asset extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'team_members' => 'array',
         'image_paths' => 'array',
         'document_paths' => 'array',
     ];
@@ -51,7 +50,7 @@ class Asset extends Model
      */
     public function assignedUser()
     {
-        return $this->belongsTo(User::class, 'assigned_to_user_id', 'user_id');
+        return $this->belongsTo(User::class, 'assigned_user', 'user_id');
     }
 }
 

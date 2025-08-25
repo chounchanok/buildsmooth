@@ -24,6 +24,7 @@ Route::get('/customer_contacts', [AuthController::class, 'customer_contacts']);
 Route::apiResource('projects', ProjectController::class)->parameters([
     'projects' => 'project:project_id' // บอกให้ Laravel รู้จัก project_id
 ]);
+
 Route::apiResource('assets', AssetController::class);
 
 Route::post('projects/generateCode', [ProjectController::class, 'generateCode']);

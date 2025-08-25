@@ -72,7 +72,23 @@ class ProjectController extends Controller
         $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
         $validated['customer_contacts'] = $request->customer_contacts ? array_filter($request->customer_contacts) : [];
 
-        // ... (File upload logic remains the same) ...
+        if ($request->hasFile('images')) {
+            $imagePaths = [];
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('project_images', 'public');
+                $imagePaths[] = $path;
+            }
+            $validated['image_paths'] = $imagePaths;
+        }
+
+        if ($request->hasFile('documents')) {
+            $documentPaths = [];
+            foreach ($request->file('documents') as $file) {
+                $path = $file->store('project_documents', 'public');
+                $documentPaths[] = $path;
+            }
+            $validated['document_paths'] = $documentPaths;
+        }
 
         $project = Project::create($validated);
 

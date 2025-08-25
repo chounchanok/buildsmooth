@@ -31,20 +31,18 @@ class AssetController extends Controller
             'asset_name' => 'required|string|max:255',
             'asset_code' => 'nullable|string|max:100|unique:assets,asset_code',
             'description' => 'nullable|string',
+            'status' => 'required|string|max:50',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'project_id' => 'nullable|uuid|exists:projects,project_id',
-            'team_members' => 'nullable|array',
-            'team_members.*' => 'nullable|string|exists:users,user_id',
+            'assigned_user' => 'nullable|uuid|exists:users,user_id',
+            'team_members' => 'nullable|uuid|exists:users,user_id',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'documents' => 'nullable|array',
             'documents.*' => 'file|mimes:pdf|max:5120',
             'document_detail' => 'nullable|string',
         ]);
-
-        // จัดการข้อมูล Array
-        $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
 
         // จัดการการอัปโหลดไฟล์
         if ($request->hasFile('images')) {
@@ -92,8 +90,8 @@ class AssetController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'project_id' => 'nullable|uuid|exists:projects,project_id',
-            'team_members' => 'nullable|array',
-            'team_members.*' => 'nullable|string|exists:users,user_id',
+            'assigned_user' => 'nullable|uuid|exists:users,user_id',
+            'team_members' => 'nullable|uuid|exists:users,user_id',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'documents' => 'nullable|array',
@@ -101,11 +99,6 @@ class AssetController extends Controller
             'document_detail' => 'nullable|string',
             'status' => 'sometimes|string|max:50',
         ]);
-        
-        // จัดการข้อมูล Array (ถ้ามีการส่งมา)
-        if ($request->has('team_members')) {
-            $validated['team_members'] = $request->team_members ? array_filter($request->team_members) : [];
-        }
 
         // จัดการการอัปโหลดไฟล์ (ถ้ามีการส่งมา)
         if ($request->hasFile('images')) {

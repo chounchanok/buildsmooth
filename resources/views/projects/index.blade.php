@@ -68,7 +68,7 @@
                                     <i data-lucide="check-square" class="w-4 h-4 mr-2"></i> {{ $project->status }}
                                 </div>
                             </td>
-                            <td class="text-center">{{ $project->start_date }}</td>
+                            <td class="text-center">{{ date('d/m/Y', strtotime($project->start_date)) }}</td>
                             <td class="table-report__action w-56">
                                 <div class="flex justify-center items-center">
                                     <a class="flex items-center mr-3" href="{{ route('projects.edit', $project->project_id) }}">

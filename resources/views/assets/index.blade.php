@@ -33,7 +33,7 @@
                             <td>{{ $asset->asset_code ?? '-' }}</td>
                             <td class="w-40 text-center">{{ $asset->status }}</td>
                             <td class="text-center">{{ $asset->project->project_name ?? '-' }}</td>
-                            <td class="text-center">{{ $asset->assignedUser->first_name ?? '-' }}</td>
+                            <td class="text-center">{{ $asset->assignedUser->first_name.' '.$asset->assignedUser->last_name ?? '-' }}</td>
                             <td class="table-report__action w-56">
                                 <div class="flex justify-center items-center">
                                     <a class="flex items-center mr-3" href="{{ route('assets.edit', $asset->asset_id) }}">

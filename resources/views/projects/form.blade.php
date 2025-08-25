@@ -93,7 +93,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                         <?php 
                         if(!empty($project->team_members)) {
-                            $team_members = json_decode($project->team_members ?? '[]', true);
+                            if(is_array($project->team_members)) {
+                                $team_members = $project->team_members;
+                            } else {
+                                $team_members = json_decode($project->team_members ?? '[]', true);
+                            }
                         } else {
                             $team_members = [];
                         }
@@ -113,7 +117,11 @@
                         {{-- ชื่อลูกค้า --}}
                         <?php 
                         if(!empty($project->customer_contacts)) {
-                            $custiner_contacts = json_decode($project->customer_contacts ?? '[]', true);
+                            if(is_array($project->customer_contacts)) {
+                                $custiner_contacts = $project->customer_contacts;
+                            } else {
+                                $custiner_contacts = json_decode($project->customer_contacts ?? '[]', true);
+                            }
                         } else {
                             $custiner_contacts = [];
                         }
